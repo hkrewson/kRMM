@@ -58,12 +58,9 @@ if [[ ${#upgradable[@]} > 1 ]]; then
 	# We need a marker for the end of this listing. 
 	#	5 dashes should be searchable.
 	printf "\n-----\n\n" >> $updatesLOG
-	# We need an exit larger than 1000. Any number to indicate error.
-	exit 1001
 else
 	# Otherwise, we have no updates.
 	#	Notate in the log and stdout.
 	echo "No updates available." | tee -a $updatesLOG
-	exit 0
 fi
 
