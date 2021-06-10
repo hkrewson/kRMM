@@ -14,6 +14,13 @@
 # See the License for the specific language governing permissions and
 # 	limitations under the License.
 #
+###############################################################################
+#								ABOUT
+#
+# This script is intended as a method for checking and reporting on available
+#	updates to your Pi-Hole install.
+#
+###############################################################################
 # Set internal field separator to newline
 IFSOLD=$IFS
 IFS=$'\n'

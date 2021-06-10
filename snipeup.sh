@@ -14,6 +14,14 @@
 # See the License for the specific language governing permissions and
 # 	limitations under the License.
 #
+###############################################################################
+#								ABOUT
+#
+# This script is intended as a method for checking and reporting on available
+#	updates to your Snipe-It install.
+#
+###############################################################################
+#
 # Begin grabbing some revision and version info with git.
 # @ equals the local git revision whil @{u} equals the current upstream
 #	revision

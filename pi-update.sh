@@ -14,6 +14,14 @@
 # See the License for the specific language governing permissions and
 # 	limitations under the License.
 #
+###############################################################################
+#								ABOUT
+#
+# This script is intended as a method of testing for and reporting on available
+#	updates to your Raspberry Pi.
+#
+###############################################################################
+#
 # We need a log file to keep track of installable software. 
 #	/var/log/apt/history.log keeps track of all installs and upgrades.
 #	We'll keep track of our list in a new /var/log/apt-updates.log file
