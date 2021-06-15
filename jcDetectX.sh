@@ -34,6 +34,18 @@ API_KEY=''
 Group_ID=''
 detectx-jamfHOME=''
 
+jcGroupMembership() {
+	curl -X POST https://console.jumpcloud.com/api/v2/systemgroups/"${Group_ID}"/members \
+	-H 'Accept: application/json' \
+	-H 'Content-Type: application/json' \
+	-H 'x-api-key: '${API_KEY}'' \
+	-d '{
+		"op": "'"$1"'",
+		"type": "system",
+		"id": "'"${systemID}"'"
+	}'
+}
+
 ## Get JumpCloud SystemID
 conf="$(cat /opt/jc/jcagent.conf)"
 regex='\"systemKey\":\"[a-zA-Z0-9]{24}\"'
@@ -59,24 +71,8 @@ detISS=$(python $detectx-jamfHOME/EA-DetectX-Issues.py)
 
 # If the results are 'None', make sure the system is NOT in the Group 'DetectX Issues Found'
 if [[ "$detISS" == '<result>None</result>' || "$detINF" == '<result>None</result>' ]]; then
-	curl -X POST https://console.jumpcloud.com/api/v2/systemgroups/"${Group_ID}"/members \
-	-H 'Accept: application/json' \
-	-H 'Content-Type: application/json' \
-	-H 'x-api-key: '${API_KEY}'' \
-	-d '{
-		"op": "remove",
-		"type": "system",
-		"id": "'${systemID}'"
-	}'
+	jcGroupMembership "remove"
 else 
 # Else, add it to the group 'DetectX Issues Found'
-	curl -X POST https://console.jumpcloud.com/api/v2/systemgroups/"${Group_ID}"/members \
-	-H 'Accept: application/json' \
-	-H 'Content-Type: application/json' \
-	-H 'x-api-key: '${API_KEY}'' \
-	-d '{
-		"op": "add",
-		"type": "system",
-		"id": "'${systemID}'"
-	}'
+	jcGroupMembership "add"
 fi
