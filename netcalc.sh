@@ -1,9 +1,29 @@
 #!/bin/zsh
-
-#fClassless() {
-#	# Airtable Calc
-#	#IF(OR({Class}='Class E',{Class}='Class D'),' ',SWITCH({CIDR},'8','256 B / ','16','256 C / ')&IF({CIDR}='',' ',IF({CIDR}<9,POWER(2,8-{CIDR}) & ' ' &'A',IF({CIDR}<17,POWER(2,16-{CIDR}) & ' ' &'B',IF({CIDR}<25,POWER(2,24-{CIDR}) & ' ' & 'C','1/' & POWER(2,{CIDR}-24) & ' ' & 'C')))))
-#}
+#
+# Copyright 2021 Hamlin Krewson
+# 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# 	limitations under the License.
+#
+###############################################################################
+#								ABOUT
+#
+# This script is intended as a way to calculate and display information about a 
+#	network from a CIDR notated address.
+#
+# See also my Airtable Network Calculator
+#	https://airtable.com/universe/expQ6Y0IQZBfWh6at/network-calculator
+# 
+###############################################################################
 
 fSubnet() {
 	cider="$1"
@@ -110,7 +130,7 @@ fCIDR(){
 	done
 }
 
-fCIDR 0.0.0.0
+fCIDR 192.168.1.1
 fSubnet $CIDR
 fNetworkBin 
 availIPs=$((2 ** $rcider))
