@@ -24,48 +24,58 @@
 #	https://airtable.com/universe/expQ6Y0IQZBfWh6at/network-calculator
 # 
 ###############################################################################
+#
+#
+################################## VARIABLES ###################################
+# The following variables are in place to test for classless addressing
+#
+loopBackBin='01111111'
+rfcTen='00001010'
+rfcOneSevenTwo='1010110000010000'
+rfcOneNineTwo='1100000010101000'
+###############################################################################
 
+# fSubnet SCIDR
 fSubnet() {
 	cider="$1"
-	#echo $cider
 	rcider=$(expr 32 - $cider)
-	#echo $rcider
 	binstring=$(printf '1%.0s' {1..$cider};printf '0%.0s' {1..$rcider})
 	# In bash, printf doesn't allow passing a variable inside braces. Instead
 	#	pass it as a sequence like below.
 	#binstring=$(printf '1%.0s' $(seq 0 $cider);printf '0%.0s' $(seq 1 $rcider))
-	#echo $binstring
-	subnetSTR=()
+	subnetstr=()
 	i=1
 	offset=0
 	for i in 1 2 3 4; do
-		subnetSTR[$i]=${binstring:$offset:8}
+		subnetstr[$i]=${binstring:$offset:8}
 		i=$((i+1))
 		offset=$((offset+8))
 	done
-	#echo $subnetSTR
+	#echo $subnetstr
 }
 
+# fIpToBin $IPINPUT
 fIpToBin(){
 	# From https://stackoverflow.com/questions/18870209/convert-a-decimal-number-to-hexadecimal-and-binary-in-a-shell-script
 	#
 	# printf "%08d" sets the length of the number to print
 	#
 	# Set an empty Array
-	binIP=()
+	binaryIp=()
 	i=1
 	for octet in $(echo ${1} | tr "." " "); do
 		# Add each binary octet to the Array
-		binIP[$i]=$(printf "%08d\n" $(bc <<< "ibase=10; obase=2;$octet"))
+		binaryIp[$i]=$(printf "%08d\n" $(bc <<< "ibase=10; obase=2;$octet"))
 		i=$((i+1))
 	done
 }
 
 fNetworkBin(){
+	# Called without additional arguments. Must be called following fSubnet()
 	# Convert the given IP to a binary representation of the Network ID
 	rem=${binstring:$CIDR:$rcider}
 	netLength=$(( ${#binstring} - ${#rem}))
-	ipbinflat=$(printf "%s" $BINIPINPUT)
+	ipbinflat=$(printf "%s" $binIpInput)
 	networkIPBin=$(printf '%s%s' ${ipbinflat:0:$netLength}$rem)
 	ipbeginbin=$networkIPBin
 	broadcastbin=$(printf '%s' ${ipbinflat:0:$netLength};printf '1%.0s' {1..${#rem}})
@@ -76,32 +86,49 @@ fNetworkBin(){
 # fNetworkIP $binary ipname
 fBinToIP(){     
 	#convert the given binary numbers back to dot notation
+	# Expects two arguments:
+	# 1: A label. This will become a variable name for later.
+	# 2: A variable containing a 32 digit binary number
 	offset=0
+	# ipnum is a temporary variable to hold the ip address. This will be passed
+	#	to your label when we're done.
 	ipnum=''
 	for i in 1 2 3 4; do
+		# 4 passes to break the binary into octets
+		# octet does this with parameter expansion
 		octet=${2:$offset:8}
 		i=$((i+1))
 		offset=$((offset+8))
+		# Here, ipnum is added to, feeding it each octed followed by a '.'
 		ipnum="${ipnum}$(printf "%d\n" $(bc <<< "ibase=2;$octet"))."
 	done
+	# ipnum has a trailing '.' that we need to remove
 	eval "$1=${ipnum%.}"
 }
-
-#fBinToDecMath(){ 
-#	# fBinToDecMath varname binarynumber
-#	eval "$1=$(printf "%d\n" $(bc <<< "ibase=2;$2"))" 
-#}
-
 
 fCIDR(){
 	# Test the input IP address for CIDR notation and split into vars
 	if [[ $1 =~ "/" ]]; then
+		# Grab everything after the '/' in our CIDR notation
 		CIDR=$(echo $1 | awk -F/ '{printf $2}')
+		# Grab everything before the '/' in our CIDR notation
 		IPINPUT=$(echo $1 | awk -F/ '{printf $1}')
 	else
-		#IP may be Classful
+		# IP may be Classful. If it's classful, we'll assign a psuedo cidr to 
+		#	provide the appropriate range for the class.
 		IPINPUT=$1
 		
+		# Case statement to test which class this belongs to. Ultimately, we'll 
+		#	expand upon this to catch classless addressing, i.e.
+		#	case $IPINPUT in
+		#		127.0.0.0/8)
+		#			CIDR=8
+		#			class='Loopback'
+		#		;;
+		#		172.16.0.0/12 | 192.168.0.0/16 | 10.0.0.0/8)
+		#			CIDR=$(echo $1 | awk -F/ '{printf $2}')
+		#			class='RFC1918'
+		#		;;
 		case $IPINPUT in
 			0.0.0.0) 
 				CIDR=1
@@ -121,20 +148,30 @@ fCIDR(){
 		esac
 	fi
 	# 
-	BINIPINPUT=()
+	binIpInput=()
 	fIpToBin $IPINPUT
 	i=1
-	for octet in ${binIP[@]}; do
-		BINIPINPUT[$i]=$octet
+	for octet in ${binaryIp[@]}; do
+		binIpInput[$i]=$octet
 		i=$((i+1))
 	done
 }
 
+# Currently fCIDR() is being called with a static IP. This is for testing. IP 
+#	should be replaced with a $1 variable call
 fCIDR 192.168.1.1
 fSubnet $CIDR
 fNetworkBin 
+
+################################## VARIABLES ###################################
+# Variables to be set following a call to fSubnet()
 availIPs=$((2 ** $rcider))
 hosts=$(($availIPs - 2))
+#
+################################ END VARIABLES #################################
+
+################################### fBinToIP ###################################
+# Make the pretty IP's for the report.
 fBinToIP broadcast $broadcastbin
 fBinToIP networkIP $networkIPBin
 fBinToIP ipbeginIP $ipbeginbin
