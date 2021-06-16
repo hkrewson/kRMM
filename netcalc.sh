@@ -54,6 +54,37 @@ fSubnet() {
 	#echo $subnetstr
 }
 
+fClassless() {
+	# Call fClassless() following a call to fIpToBin()
+	# fClassless $binaryIp
+	binipflat=$1
+	classlessBinEight=${binipflat:0:8}
+	classlessBinSixteen=${binipflat:0:16}
+	for i in "01111111" "00001010" "1010110000010000" "1100000010101000"; do
+		if [[ $classlessBinEight =~ $i ]]; then
+			case $i in
+				01111111) 
+					classless='Loopback'
+					;;
+				00001010) 
+					classless='RFC1918'
+					classlessIP='10.x.x.x'
+					;; 
+			esac
+		elif [[ $classlessBinSixteen =~ $i ]]; then
+			case $i in
+				1010110000010000) 
+					classless='RFC1918'
+					classlessIP='172.16.x.x-172.31.x.x'
+					;;
+				1100000010101000) 
+					classless='RFC1918'
+					classlessIP='192.168.x.x'
+					;;
+			esac
+		fi
+	done
+}
 # fIpToBin $IPINPUT
 fIpToBin(){
 	# From https://stackoverflow.com/questions/18870209/convert-a-decimal-number-to-hexadecimal-and-binary-in-a-shell-script
@@ -68,6 +99,8 @@ fIpToBin(){
 		binaryIp[$i]=$(printf "%08d\n" $(bc <<< "ibase=10; obase=2;$octet"))
 		i=$((i+1))
 	done
+	printf -v binipflat "%s" "${binaryIp[@]}"
+	fClassless $binipflat
 }
 
 fNetworkBin(){
@@ -118,17 +151,7 @@ fCIDR(){
 		#	provide the appropriate range for the class.
 		IPINPUT=$1
 		
-		# Case statement to test which class this belongs to. Ultimately, we'll 
-		#	expand upon this to catch classless addressing, i.e.
-		#	case $IPINPUT in
-		#		127.0.0.0/8)
-		#			CIDR=8
-		#			class='Loopback'
-		#		;;
-		#		172.16.0.0/12 | 192.168.0.0/16 | 10.0.0.0/8)
-		#			CIDR=$(echo $1 | awk -F/ '{printf $2}')
-		#			class='RFC1918'
-		#		;;
+		# Case statement to test which class this belongs to. 
 		case $IPINPUT in
 			0.0.0.0) 
 				CIDR=1
@@ -159,7 +182,7 @@ fCIDR(){
 
 # Currently fCIDR() is being called with a static IP. This is for testing. IP 
 #	should be replaced with a $1 variable call
-fCIDR 192.168.1.1
+fCIDR 192.168.1.1/24
 fSubnet $CIDR
 fNetworkBin 
 
@@ -181,6 +204,7 @@ fBinToIP subnetIP $binstring
 
 printf "%25s %s %s\n" "IP Input:" $IPINPUT
 printf "%25s %s\n %59s\n" "Network:" "$networkIP" "($networkIPBin)"
+printf "%25s %s %s\n" "Classless:" $classless $classlessIP
 printf "%25s %s\n %59s\n" "Subnet Mask:" $subnetIP "($binstring)"
 printf "%25s %s\n %59s\n" "Broadcast:" $broadcast "($broadcastbin)"
 printf "%25s %s\n %59s\n" "First IP:" $ipbeginIP "($ipbeginbin)"
