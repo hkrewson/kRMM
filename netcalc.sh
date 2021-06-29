@@ -18,13 +18,22 @@
 #								ABOUT
 #
 # This script is intended as a way to calculate and display information about a 
-#	network from a CIDR notated address.
+#	network from a CIDR notated address. This is purely for fun on my part, and 
+#	not intended for production or serious use.
+#
+# Be sure to fully read and understand what happens before running. If you have 
+#	questions, you can find me lurking in the MacAdmins Slack.
 #
 # See also my Airtable Network Calculator
 #	https://airtable.com/universe/expQ6Y0IQZBfWh6at/network-calculator
 # 
 ###############################################################################
 #
+#
+#################################### TO DO #####################################
+#
+# Largely complete, I need to give it a once-over to see what I might be missing
+#	as it relates to Classful vs Classless etc.
 #
 ################################## VARIABLES ###################################
 # The following variables are in place to test for classless addressing
@@ -180,9 +189,9 @@ fCIDR(){
 	done
 }
 
-# Currently fCIDR() is being called with a static IP. This is for testing. IP 
-#	should be replaced with a $1 variable call
-fCIDR 192.168.1.1/24
+################################# Work begins ##################################
+
+fCIDR $1
 fSubnet $CIDR
 fNetworkBin 
 
@@ -202,6 +211,9 @@ fBinToIP ipavailbeginIP $ipavailbeginbin
 fBinToIP ipavailendIP $ipavailendbin
 fBinToIP subnetIP $binstring
 
+
+	
+############################## Print the things ################################
 printf "%25s %s %s\n" "IP Input:" $IPINPUT
 printf "%25s %s\n %59s\n" "Network:" "$networkIP" "($networkIPBin)"
 printf "%25s %s %s\n" "Classless:" $classless $classlessIP
