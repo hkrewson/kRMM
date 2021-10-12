@@ -8,7 +8,8 @@
 #	Sets them up as callable variables.
 eval $(scutil <<< "show Setup:/Network/Global/IPv4" | awk -F' : ' '/[0-9]/ {gsub(/ /,"");gsub(":","=");print "en"$1""$2}')
 
-enArray=($(typeset +m 'en*'))
+# The following is unused at this time. Commented for compatibility between bash and zsh
+# enArray=($(typeset +m 'en*'))
 
 # Grab the primary network interface
 #   PrimaryInterface=(interface short name: en#)
